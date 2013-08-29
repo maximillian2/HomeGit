@@ -17,10 +17,10 @@ OPTIONS:
 	absolute path to archieve destination
 -h, --help
 	print help and exit
--opts, --options
-	print all options and exit
 -v, --verbose
-	verbose mode"
+	verbose mode
+-mod, --make-obsolete-debs
+    make debs from .deb installed packages"
 }
 function usage {
 	echo "USAGE: $0 [OPTIONS]"
@@ -30,7 +30,7 @@ function description {
 DESCRIPTION
 
 This program backs up local repos and packages to archieve
-which you can easily transfer to another machine and restore
+which you can easily transfer to another machine and restoref
 it with another script called restore.sh. It should be included
 into folder with backup.sh. 
 			"
@@ -39,8 +39,7 @@ into folder with backup.sh.
 
 ## if no parameters given, exit.
 if [[ "$#" -eq "0" ]]; then
-	usage
-	opts
+	usage; opts
 	exit 1
 fi
 
@@ -50,26 +49,20 @@ while [ 1 ]; do
 		shift
 
 		if [ ! -d "$1" ]; then 		## if $1 is not a directory
-			if [ -f "$1" ]; then 	## but file
-				rm $1				## remove file
+			if [ -f "$1" ]; then 	    ## but file
+				rm $1			    	## remove file
 			fi
 		else
-			if [ -w "$1" ]; then  	## whether destination directory is writable
-				mkdir -p $1			## create it 
+			if [ -w "$1" ]; then  	    ## whether destination directory is writable
+				mkdir -p $1		    	## create it 
 			else 
 					echo "Permission denied." 1>&2
 					exit 1
 			fi	
 		fi 
-		
-	## final path
-	SOURCE="$1/$ARCHIEVE" 			
-	
+	SOURCE="$1/$ARCHIEVE" ## final path			
 	elif [[ "$1" = "--help" || "$1" = "-h" ]]; then
 		usage; opts; description
-		exit 1
-	elif [[ "$1" = "--options" || "$1" = "-opts" ]]; then 
-		opts
 		exit 1
 	elif [[ "$1" = "--verbose" || "$1" = "-v" ]]; then
 		verboseYes=1
@@ -132,7 +125,7 @@ if [ "$verboseYes" = "1" ]; then
 	echo " --> $PROG_OUTPUT"
 	echo " --> $REPO_OUTPUT"
 	echo " --> $REPO_DIR_OUTPUT"
-	if [[ "$make_debs" -eq "1" ]; then
+	if [[ "$make_debs" -eq "1" ]]; then
 		echo " --> $OBS_DEBS_ARCHIEVE"
 	fi
 fi
@@ -144,4 +137,4 @@ if [[ "$make_debs" -eq "1" ]]; then
 fi
 
 ## [CLEAN UP]
-sudo rm -rf $PROG_OUTPUT $REPO_OUTPUT $REPO_DIR_OUTPUT $OBS_DEBS_DIR
+rm -rf $PROG_OUTPUT $REPO_OUTPUT $REPO_DIR_OUTPUT $OBS_DEBS_DIR
