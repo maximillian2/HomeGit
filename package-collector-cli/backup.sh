@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## TODO: verify aptitude installation
+
 ## -- VARS -- ##
 PROG_FLNAME="`lsb_release -i | awk '{print $3}'`_`uname -m`_`date +%Y%m%d%H%M%S`"
 PROG_OUTPUT=$PROG_FLNAME.packlist
@@ -36,7 +38,13 @@ into folder with backup.sh.
 			"
 ##In future restore.sh and backup.sh will be one script. 
 }
-function 
+function debmaker {
+	mkdir -p "$OBS_DEBS_DIR"
+	cd $OBS_DEBS_DIR &&
+	aptitude search '~i~o' | awk '{print $2}' | sudo xargs dpkg-repack 
+	cd ../
+	make_debs=1
+}
 
 ## if no parameters given, exit.
 if [[ "$#" -eq "0" ]]; then
@@ -67,11 +75,7 @@ while [ 1 ]; do
 	elif [[ "$1" = "--verbose" || "$1" = "-v" ]]; then
 		verboseYes=1
 	elif [[ "$1" = "--make-obsolete-debs" || "$1" = "-mod" ]]; then
-		mkdir -p "$OBS_DEBS_DIR"
-		cd $OBS_DEBS_DIR &&
-		aptitude search '~i~o' | awk '{print $2}' | sudo xargs dpkg-repack &&
-		cd ../
-		make_debs=1
+		debmaker
 	elif [ -z "$1" ]; then
 		break # exit loop when parameters are over 
 	else 
@@ -115,7 +119,7 @@ tar -czf $REPO_DIR_OUTPUT repo_dir/
 rm -r repo_dir
 
 ## [OBSOLETE DEB PACKAGES] if make_debs = 1
-if [[ "$make_debs" -eq "1" ]]; then
+if [[ "$make_debs" -eq "1" ]]; then	
 	tar -czf $OBS_DEBS_ARCHIEVE $OBS_DEBS_DIR 
 fi
 ## [$SOURCE]
