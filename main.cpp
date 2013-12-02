@@ -6,7 +6,9 @@
 
 int main(int argc, char *argv[])
 {
-    QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
+    QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+    QTextCodec::setCodecForTr(codec);
+
     QApplication a(argc, argv);
 
     MainWindow *m = new MainWindow;
