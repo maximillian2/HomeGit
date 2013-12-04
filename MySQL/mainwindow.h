@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QSqlQueryModel>
 #include <QPushButton>
+#include <QSqlRelationalTableModel>
 
 namespace Ui {
 class MainWindow;
@@ -27,12 +28,16 @@ private slots:
     void on_pushButton_5_clicked();
     void on_pushButton_6_clicked();
 
-    void on_table_comboBox_textChanged(const QString &arg1);
-
     void on_table_comboBox_activated(const QString &arg1);
 
+    void on_checkBox_clicked();
+
+    void on_column_comboBox_activated(const QString &arg1);
+
+    void on_column_comboBox_currentIndexChanged(const QString &arg1);
+
 private:
-    QSqlQueryModel *model;
+    QSqlRelationalTableModel *model;
     Ui::MainWindow *ui;
 
 };

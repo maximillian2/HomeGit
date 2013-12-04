@@ -46,6 +46,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         column_list << columns_combobox_query.value(0).toString();
     }
     ui->column_comboBox->addItems(column_list);
+
+    // hide widgets until column is int
+    ui->find_number_comboBox->hide();
+
+    ui->find_number_comboBox->addItem(">");
+    ui->find_number_comboBox->addItem(">=");
+    ui->find_number_comboBox->addItem("<");
+    ui->find_number_comboBox->addItem("<=");
+    ui->find_number_comboBox->addItem("=");
+    ui->find_number_comboBox->setCurrentIndex(ui->find_number_comboBox->findText("="));
 }
 
 MainWindow::~MainWindow()
@@ -57,14 +67,10 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     make_inactive(ui->pushButton);
-    ui->pushButton_2->setEnabled(true);
-    ui->pushButton_3->setEnabled(true);
-    ui->pushButton_4->setEnabled(true);
-    ui->pushButton_5->setEnabled(true);
 
-
-    model = new QSqlQueryModel;
-    model->setQuery("SELECT * FROM Street");
+    model = new QSqlRelationalTableModel;
+    model->setTable("Street");
+    model->select();
 
     ui->tableView->setModel(model);
     ui->tableView->resizeColumnsToContents();       //fit into column field
@@ -74,15 +80,11 @@ void MainWindow::on_pushButton_clicked()
 // button "Family"
 void MainWindow::on_pushButton_2_clicked()
 {
-
     make_inactive(ui->pushButton_2);
-    ui->pushButton->setEnabled(true);
-    ui->pushButton_3->setEnabled(true);
-    ui->pushButton_4->setEnabled(true);
-    ui->pushButton_5->setEnabled(true);
 
-    model = new QSqlQueryModel;
-    model->setQuery("SELECT * FROM Family");
+    model = new QSqlRelationalTableModel;
+    model->setTable("Family");
+    model->select();
 
     ui->tableView->setModel(model);
     ui->tableView->resizeColumnsToContents();       //fit into column field
@@ -92,16 +94,11 @@ void MainWindow::on_pushButton_2_clicked()
 // button "Workplace"
 void MainWindow::on_pushButton_3_clicked()
 {
-
     make_inactive(ui->pushButton_3);
-    ui->pushButton_2->setEnabled(true);
-    ui->pushButton->setEnabled(true);
-    ui->pushButton_4->setEnabled(true);
-    ui->pushButton_5->setEnabled(true);
 
-
-    model = new QSqlQueryModel;
-    model->setQuery("SELECT * FROM Workplace");
+    model = new QSqlRelationalTableModel;
+    model->setTable("Workplace");
+    model->select();
 
     ui->tableView->setModel(model);
     ui->tableView->resizeColumnsToContents();       //fit into column field
@@ -111,16 +108,11 @@ void MainWindow::on_pushButton_3_clicked()
 // button "Livers"
 void MainWindow::on_pushButton_4_clicked()
 {
-    ///////
     make_inactive(ui->pushButton_4);
-    ui->pushButton_2->setEnabled(true);
-    ui->pushButton_3->setEnabled(true);
-    ui->pushButton->setEnabled(true);
-    ui->pushButton_5->setEnabled(true);
-    ///////
 
-    model = new QSqlQueryModel;
-    model->setQuery("SELECT * FROM Livers");
+    model = new QSqlRelationalTableModel;
+    model->setTable("Livers");
+    model->select();
 
     ui->tableView->setModel(model);
     ui->tableView->resizeColumnsToContents();       //fit into column field
@@ -130,15 +122,11 @@ void MainWindow::on_pushButton_4_clicked()
 // button "Education_place"
 void MainWindow::on_pushButton_5_clicked()
 {
-
     make_inactive(ui->pushButton_5);
-    ui->pushButton_2->setEnabled(true);
-    ui->pushButton_3->setEnabled(true);
-    ui->pushButton_4->setEnabled(true);
-    ui->pushButton->setEnabled(true);
 
-    model = new QSqlQueryModel;
-    model->setQuery("SELECT * FROM Education_place");
+    model = new QSqlRelationalTableModel;
+    model->setTable("Education_place");
+    model->select();
 
     ui->tableView->setModel(model);
     ui->tableView->resizeColumnsToContents();       //fit into column field
@@ -150,7 +138,7 @@ void MainWindow::refresh(const QString arg1)
 {
     ui->column_comboBox->clear();
     QString str;
-    str += "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'Livers' AND TABLE_NAME = '" + arg1 + "';";
+    str = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'Livers' AND TABLE_NAME = '" + arg1 + "';";
 
     QSqlQuery query;
     query.exec(str);
@@ -170,18 +158,34 @@ void MainWindow::on_table_comboBox_activated(const QString &arg1)
 // button "Find"
 void MainWindow::on_pushButton_6_clicked()
 {
+    model = new QSqlRelationalTableModel;
     QString find_string;
-    if(ui->lineEdit->text() == NULL)
-        find_string = "SELECT " + ui->column_comboBox->currentText() + " FROM " + ui->table_comboBox->currentText() + ";";
-    else
-        find_string = "SELECT * FROM " + ui->table_comboBox->currentText() + " WHERE " + ui->column_comboBox->currentText() + " = \"" + ui->lineEdit->text() + "\";";
 
-    /////////////////////////////////
+    model->setTable(ui->table_comboBox->currentText());
+
+    if(ui->checkBox->isChecked())   // is checked
+    {
+        find_string.clear();
+        find_string = ui->column_comboBox->currentText() + " LIKE \"" + ui->lineEdit->text() + "%\";";
+        model->setFilter(find_string);
+    }
+    else                            // isn't checked
+    {
+        find_string.clear();
+        find_string = ui->column_comboBox->currentText() + " = " + ui->lineEdit->text() + ";";
+        model->setFilter(find_string);
+    }
+
+    if(ui->find_number_comboBox->isVisible())
+    {
+        find_string.clear();
+        find_string = ui->column_comboBox->currentText() + " " + ui->find_number_comboBox->currentText() + " " + ui->lineEdit->text() + ";";
+        model->setFilter(find_string);
+    }
+
     qWarning(find_string.toLatin1());
-    /////////////////////////////////
 
-    model = new QSqlQueryModel;
-    model->setQuery(find_string);
+    model->select();
 
     ui->tableView->setModel(model);
     ui->tableView->resizeColumnsToContents();       //fit into column field
@@ -190,5 +194,36 @@ void MainWindow::on_pushButton_6_clicked()
 
 void MainWindow::make_inactive(QPushButton *button)
 {
+    ui->pushButton->setEnabled(true);
+    ui->pushButton_2->setEnabled(true);
+    ui->pushButton_3->setEnabled(true);
+    ui->pushButton_4->setEnabled(true);
+    ui->pushButton_5->setEnabled(true);
     button->setEnabled(false);
 }
+
+void MainWindow::on_column_comboBox_currentIndexChanged(const QString &arg1)
+{
+    QString query_string;
+    query_string = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'Livers' AND TABLE_NAME = '" + ui->table_comboBox->currentText() + "' AND COLUMN_NAME = '" + arg1 + "' and DATA_TYPE = 'int';";
+
+    qWarning(query_string.toLatin1());
+
+    QSqlQuery *query = new QSqlQuery;
+    query->exec(query_string);
+
+    // have result, show fields
+    if(query->size())
+    {
+        ui->find_number_comboBox->show();
+        ui->checkBox->setDisabled(true);
+    }
+    // no - hide if not hidden
+    else
+    {
+        ui->checkBox->setDisabled(false);
+        ui->find_number_comboBox->hide();
+    }
+}
+
+
